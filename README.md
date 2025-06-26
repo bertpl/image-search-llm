@@ -17,3 +17,8 @@ but should work on any system that can run `ollama`, e.g. Windows systems with r
 - **Install Python dependencies**
   - set up a virtual environment (optional but recommended) as desired (e.g conda)
   - `pip install -r requirements.txt`
+
+## 2. Command line usage
+
+- **Run the script**: `python image_search.py`, which should give you an overview of the available commands and options.
+  - NOTE: you need to make sure the `ollama` server is running for some commands (such as tagging): `ollama serve`

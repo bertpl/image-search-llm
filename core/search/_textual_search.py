@@ -45,8 +45,13 @@ def _get_score(search_data: SearchData, query: str) -> float:
 
     # init
     score = 0.0
+    text_search_string = search_data.text_search_string().lower()   # concatenated string of all info to be text-searched
+    print("------------------------------------")
+    print(text_search_string)
+
+    # compute # of occurrences of each word in the query
     for word in set(query.lower().split()):
-        score += search_data.tags.count(word) + search_data.description.lower().count(word)
+        score += text_search_string.count(word)
 
     return score
 

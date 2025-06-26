@@ -4,6 +4,7 @@ This is the main file of the image search application.  We provide a CLI using t
 Run python image_search.py --help to see the available commands.
 """
 from pathlib import Path
+from typing import Literal
 
 import click
 
@@ -39,11 +40,12 @@ def list_models():
 @cli.command()
 @click.option('--directory', required=True, help='Path with images to be tagged.')
 @click.option('--model', default=DEFAULT_LLM_MODEL_TEXT_IMAGE ,required=False, help='Model to be used.')
+@click.option('--geolookup', type=click.Choice(["off", "offline", "online"]), default="offline" ,required=False, help='Way of resolving GPS coordinates into address/city info.')
 @click.option('--overwrite', default=False ,required=False, help='If True, will overwrite previously generated tags.')
-def tag(directory: str, model: str, overwrite: bool):
+def tag(directory: str, model: str, geolookup: Literal["off", "offline", "online"], overwrite: bool):
     """Tag all images in a directory, putting extracted tags/metadata in the metadata subfolder."""
     print(f"Tagging all images in directory '{directory}' using model '{model}'...")
-    core.tag_all_images(Path(directory), model, overwrite)
+    core.tag_all_images(Path(directory), model, geolookup, overwrite)
     print("Done.")
 
 

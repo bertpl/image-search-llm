@@ -1,3 +1,5 @@
+from typing import Literal
+
 from ._tag_image import tag_image
 from pathlib import Path
 from core.config import SUPPORTED_IMAGE_EXTENSIONS
@@ -5,7 +7,7 @@ from tqdm import tqdm
 import sys
 from core.models import ensure_model_exists
 
-def tag_all_images(images_path: Path, model: str, overwrite: bool):
+def tag_all_images(images_path: Path, model: str, geolookup: Literal["off", "offline", "online"], overwrite: bool):
 
     # ensure model exists
     ensure_model_exists(model)
@@ -21,4 +23,4 @@ def tag_all_images(images_path: Path, model: str, overwrite: bool):
         image_path = Path(image)
         metadata_path = image_path.parent / "metadata" /  f"{image_path.parts[-1]}.json"
         if overwrite or not metadata_path.exists():
-            tag_image(image_path, metadata_path, model)
+            tag_image(image_path, metadata_path, model, geolookup)

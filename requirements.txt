@@ -4,8 +4,13 @@ ollama >= 0.5.1             # Python bindings for Ollama, through which we can r
 # --- Stable Diffusion ----------------
 # TODO
 
+# --- Image Processing ----------------
+pillow >= 11.2.0            # Image processing
+exif >= 1.6.1               # Read and write EXIF metadata
+reverse-geocode >= 1.6.6    # convert GPS coordinates to country, province, city  (off-line)
+geopy >= 2.4.1              # convert GPS coordinates to country, province, city (on-line)
+
 # --- MISC ----------------------------
 click >= 8.2.0              # CLI interface
-pillow >= 11.2.0            # Image processing
 pydantic >= 2.11.0          # Data classes with convenient (de)serialization
 tqdm >= 4.67.0              # progress bars

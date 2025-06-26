@@ -1,15 +1,17 @@
 import json
+from typing import Literal
 
 import ollama
 from pathlib import Path
 import time
 from core.data import ImageMetadata, SearchData
+from ._exif import extract_time_and_location
 
 
 # =================================================================================================
 #  Main tagging functionality
 # =================================================================================================
-def tag_image(image_path: Path, metadata_path: Path, model: str):
+def tag_image(image_path: Path, metadata_path: Path, model: str, geolookup: Literal["off", "offline", "online"]):
     """
     Tag single image and save metadata.  'Tag' is used in a broad sense here, meaning that we extract
     all relevant metadata for future search actions, including, tags, description, and potentially other properties
@@ -17,13 +19,20 @@ def tag_image(image_path: Path, metadata_path: Path, model: str):
     :param image_path: Path to the image file to be tagged.
     :param metadata_path: Path to the metadata file where the extracted metadata will be saved.
     :param model: Name of the model to use.
+    :param geolookup: How to resolve GPS coordinates into address/city info.
+                       - off: do not resolve GPS coordinates
+                       - offline: use offline reverse geocoding (requires reverse_geocode package)
+                       - online: use online reverse geocoding using Nominatim (requires internet connection)
     """
 
     # --- extract search data -----------------------------
     t_start = time.time_ns()
+    time_info, location_info = extract_time_and_location(image_path, geolookup)  # extract time & location from EXIF
     search_data = SearchData(
         description=_extract_description(image_path, model),
         tags=_extract_tags(image_path, model),
+        time=time_info,
+        location=location_info,
     )
     t_extract = (time.time_ns() - t_start) / 1e9  # elapsed time in  seconds
 
@@ -38,7 +47,8 @@ def tag_image(image_path: Path, metadata_path: Path, model: str):
     # --- save metadata -----------------------------------
     metadata_path.parent.mkdir(parents=True, exist_ok=True)  # ensure parent directory exists
     with metadata_path.open("w") as metadata_file:
-        json.dump(metadata.model_dump(), metadata_file, indent=4)
+        json_str = metadata.model_dump_json(indent=4)
+        metadata_file.write(json_str)
 
 
 # =================================================================================================

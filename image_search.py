@@ -76,18 +76,20 @@ def show_tags(directory: str, n: int):
 @cli.command()
 @click.option('--directory', required=True, help='Path to the directory containing tagged images.')
 @click.option('--query', required=True, help='Search query (comma- or space-delimited words).')
-def textual_search(directory: str, query: str):
+@click.option('--use_time_location_info', required=False, default=True, help='When false, extracted time & location data is ignored in the search.')
+def textual_search(directory: str, query: str, use_time_location_info: bool = True):
     """
     Search for images in a directory based on a text query.  Text queries are treated as a set of individual words,
     each of which contribute to the importance of a search result.  The more occurrences of a word in the image's tags +
     description, will increase the score of the image for that query.
     :param directory: Path to the directory containing images.
     :param query: Text query to search for (comma or space-separated).
+    :param use_time_location_info: When false, extracted time & location data is ignored in the search.
     """
 
     # --- execute search ----------------------------------
     print(f"Searching for '{query}' in directory: {directory}")
-    results = core.textual_search(Path(directory), query)
+    results = core.textual_search(Path(directory), query, use_time_location_info)
 
     # --- show results ------------------------------------
     print(f"Found {len(results)} images:")

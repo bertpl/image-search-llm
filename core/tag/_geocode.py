@@ -39,6 +39,7 @@ def reverse_geocode_online(lat: float, lon: float) -> LocationInfo:
     """
     Resolve GPS coordinates into country, state, and city using Nominatim online reverse geocoding.
     https://geopy.readthedocs.io/en/stable/index.html?highlight=user_agent#nominatim
+    https://nominatim.org/release-docs/develop/api/Output/#addressdetails
     """
     try:
         geolocator = Nominatim(user_agent=_get_nominatim_user_agent())

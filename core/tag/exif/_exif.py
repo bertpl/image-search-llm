@@ -1,17 +1,22 @@
 """
 General functions for extracting EXIF data from images and resolving this into huma-readable text.
 """
+
+from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
-from exif import Image
-from datetime import datetime
-from core.data import TimeInfo, LocationInfo
 import reverse_geocode
-from ._geocode import reverse_geocode_online, reverse_geocode_offline
+from exif import Image
+
+from core.data import LocationInfo, TimeInfo
+
+from ._geocode import reverse_geocode_offline, reverse_geocode_online
 
 
-def extract_time_and_location(image_path: Path, geolookup: Literal["off", "offline", "online"]) -> tuple[TimeInfo | None, LocationInfo | None]:
+def extract_time_and_location(
+    image_path: Path, geolookup: Literal["off", "offline", "online"]
+) -> tuple[TimeInfo | None, LocationInfo | None]:
     """
     Returns the time and location of the image as a tuple of TimeInfo and LocationInfo.
     """
@@ -24,9 +29,7 @@ def extract_time_and_location(image_path: Path, geolookup: Literal["off", "offli
         if img.has_exif:
             # Extract datetime
             dt_str = (
-                img.get("datetime", None) or
-                img.get("datetime_original", None) or
-                img.get("datetime_digitized", None)
+                img.get("datetime", None) or img.get("datetime_original", None) or img.get("datetime_digitized", None)
             )
             if dt_str:
                 time_info = TimeInfo(dt=datetime.strptime(dt_str, "%Y:%m:%d %H:%M:%S"))
@@ -41,11 +44,12 @@ def extract_time_and_location(image_path: Path, geolookup: Literal["off", "offli
             else:
                 location_info = LocationInfo(lat=lat, lon=lon)
 
-    except Exception as e:
+    except Exception:
         pass
 
     # return the datetime and latitude/longitude as a tuple
     return time_info, location_info
+
 
 def get_lon_lat_as_float(img: Image) -> tuple[float, float]:
     lat_deg, lat_min, lat_sec = img.get("gps_latitude", None)
@@ -64,8 +68,6 @@ def get_lon_lat_as_float(img: Image) -> tuple[float, float]:
         lon = -lon
 
     return lat, lon
-
-
 
 
 def resolve_coordinates(lat: float, lon: float) -> tuple[str, str, str]:

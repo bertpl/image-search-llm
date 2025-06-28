@@ -34,12 +34,17 @@ class LocationInfo(BaseModel, SearchableItem):
     county: str | None = None
     postcode: str | None = None
     city: str | None = None
-    town: str | None = None
+    village: str | None = None
     suburb: str | None = None
+    hamlet: str | None = None
     street: str | None = None
+    name: str | None = None
 
     def text_search_string(self) -> str:
-        return f"{self.country or ''} {self.state or ''} {self.county or ''} {self.postcode or ''} {self.city or ''} {self.town or ''} {self.suburb or ''} {self.street or ''}".strip()
+        return (
+            f"{self.country or ''} {self.state or ''} {self.county or ''} {self.postcode or ''} {self.city or ''} "
+            + f"{self.village or ''} {self.suburb or ''} {self.hamlet or ''} {self.street or ''} {self.name or ''}".strip()
+        )
 
 
 # =================================================================================================

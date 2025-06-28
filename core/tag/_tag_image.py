@@ -5,7 +5,7 @@ import ollama
 from pathlib import Path
 import time
 from core.data import ImageMetadata, SearchData
-from ._exif import extract_time_and_location
+from .exif import extract_time_and_location
 
 
 # =================================================================================================

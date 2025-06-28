@@ -1,19 +1,19 @@
 """
 Functionality for reverse geocoding, i.e., converting GPS coordinates into human-readable addresses or locations.
 """
-import json
 
-from core.data import LocationInfo
 import reverse_geocode
 from geopy.geocoders import Nominatim
 from geopy.location import Location
+
+from core.data import LocationInfo
+
 
 def reverse_geocode_offline(lat: float, lon: float) -> LocationInfo:
     """
     Resolve GPS coordinates into country, state, and city using offline reverse geocoding.
     """
     try:
-
         # reverse geocoding using reverse-geocode package, using local built-in dataset
         location_dict = reverse_geocode.get((lat, lon)) or dict()
 
@@ -23,14 +23,8 @@ def reverse_geocode_offline(lat: float, lon: float) -> LocationInfo:
         city = location_dict.get("city", "")
 
         # return as LocationInfo
-        return LocationInfo(
-            lat=lat,
-            lon=lon,
-            country=country,
-            state=state,
-            city=city
-        )
-    except Exception as e:
+        return LocationInfo(lat=lat, lon=lon, country=country, state=state, city=city)
+    except Exception:
         # return as LocationInfo with just lat/lon if offline geocoding fails
         return LocationInfo(lat=lat, lon=lon)
 
@@ -45,15 +39,32 @@ def reverse_geocode_online(lat: float, lon: float) -> LocationInfo:
         geolocator = Nominatim(user_agent=_get_nominatim_user_agent())
         location: Location = geolocator.reverse(f"{lat:10.5f}, {lon:10.5f}")
         if location:
-            address = location.raw.get("address",dict())
-            country = address.get("country", "")
-            state = address.get("state", "")
-            county = address.get("county", "")
-            postcode = address.get("postcode", "")
-            city = address.get("village", "") or address.get("city", "")
-            town = address.get("town", "") or address.get("hamlet", "")
-            suburb = address.get("suburb", "")
-            street = address.get("road", "")
+            address = location.raw.get("address", dict())
+            country = get_address_field(address, "country").replace("/", ", ")
+            state = get_address_field(address, "state")
+            county = get_address_field(address, "county")
+            postcode = get_address_field(address, "postcode")
+            city = get_address_field(address, ["municipality", "city", "town"])
+            village = get_address_field(address, ["village"])
+            suburb = get_address_field(
+                address,
+                ["suburb", "subdivision", "borough", "district", "city_district"],
+            )
+            hamlet = get_address_field(address, ["hamlet", "croft", "isolated_dwelling"])
+            street = get_address_field(address, "road")
+            name = get_address_field(
+                address,
+                [
+                    "man_made",
+                    "house_name",
+                    "amenity",
+                    "farm",
+                    "tourism",
+                    "historic",
+                    "military",
+                    "natural",
+                ],
+            )
             return LocationInfo(
                 lat=lat,
                 lon=lon,
@@ -62,14 +73,26 @@ def reverse_geocode_online(lat: float, lon: float) -> LocationInfo:
                 county=county,
                 postcode=postcode,
                 city=city,
-                town=town,
+                village=village,
                 suburb=suburb,
+                hamlet=hamlet,
                 street=street,
+                name=name,
             )
         else:
             return LocationInfo(lat=lat, lon=lon)
-    except Exception as e:
+    except Exception:
         return LocationInfo(lat=lat, lon=lon)  # Fallback to just lat/lon if online geocoding fails
+
+
+def get_address_field(address: dict, fields: list[str] | str):
+    if isinstance(fields, str):
+        fields = [fields]
+    for field in fields:
+        result = address.get(field, "")
+        if result:
+            return result
+    return ""
 
 
 def _get_nominatim_user_agent() -> str:

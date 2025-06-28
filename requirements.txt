@@ -14,3 +14,5 @@ geopy >= 2.4.1              # convert GPS coordinates to country, province, city
 click >= 8.2.0              # CLI interface
 pydantic >= 2.11.0          # Data classes with convenient (de)serialization
 tqdm >= 4.67.0              # progress bars
+# --- DEVELOPMENT ---------------------
+ruff >= 0.12.1                      # Formatting

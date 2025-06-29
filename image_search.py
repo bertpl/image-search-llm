@@ -3,6 +3,7 @@ This is the main file of the image search application.  We provide a CLI using t
 
 Run python image_search.py --help to see the available commands.
 """
+
 from pathlib import Path
 from typing import Literal
 
@@ -32,25 +33,54 @@ def list_models():
     List all available models in the Ollama environment.
     """
     model_names = core.get_model_names()
-    print(f"Locally available models:")
+    print("Locally available models:")
     for model in model_names:
         print(f" - {model}")
 
 
 @cli.command()
-@click.option('--directory', required=True, help='Path with images to be tagged.')
-@click.option('--model', default=DEFAULT_LLM_MODEL_TEXT_IMAGE ,required=False, help='Model to be used.')
-@click.option('--geolookup', type=click.Choice(["off", "offline", "online"]), default="offline" ,required=False, help='Way of resolving GPS coordinates into address/city info.')
-@click.option('--overwrite', default=False ,required=False, help='If True, will overwrite previously generated tags.')
-def tag(directory: str, model: str, geolookup: Literal["off", "offline", "online"], overwrite: bool):
+@click.option("--directory", required=True, help="Path with images to be tagged.")
+@click.option(
+    "--model",
+    default=DEFAULT_LLM_MODEL_TEXT_IMAGE,
+    required=False,
+    help="Model to be used.",
+)
+@click.option(
+    "--geolookup",
+    type=click.Choice(["off", "offline", "online"]),
+    default="online",
+    required=False,
+    help="Way of resolving GPS coordinates into address/city info.",
+)
+@click.option(
+    "--embedding-size",
+    type=click.Choice([0, 128, 512, 2048]),
+    default=2048,
+    required=False,
+    help="Size of extracted embeddings for semantic search.  0 means no embeddings are extracted.",
+)
+@click.option(
+    "--overwrite",
+    default=False,
+    required=False,
+    help="If True, will overwrite previously generated tags.",
+)
+def tag(
+    directory: str,
+    model: str,
+    geolookup: Literal["off", "offline", "online"],
+    embedding_size: int,
+    overwrite: bool,
+):
     """Tag all images in a directory, putting extracted tags/metadata in the metadata subfolder."""
     print(f"Tagging all images in directory '{directory}' using model '{model}'...")
-    core.tag_all_images(Path(directory), model, geolookup, overwrite)
+    core.tag_all_images(Path(directory), model, geolookup, embedding_size, overwrite)
     print("Done.")
 
 
 @cli.command()
-@click.option('--directory', required=True, help='Path to the directory containing tagged images.')
+@click.option("--directory", required=True, help="Path to the directory containing tagged images.")
 def show_stats(directory: str):
     """
     Show statistics about the tagged images in the given directory.
@@ -61,8 +91,8 @@ def show_stats(directory: str):
 
 
 @cli.command()
-@click.option('--directory', required=True, help='Path to the directory containing tagged images.')
-@click.option('--n', default=10, help='Number of top tags to display (default: 10).')
+@click.option("--directory", required=True, help="Path to the directory containing tagged images.")
+@click.option("--n", default=10, help="Number of top tags to display (default: 10).")
 def show_tags(directory: str, n: int):
     """
     Show the most common tags in the given directory.
@@ -74,9 +104,18 @@ def show_tags(directory: str, n: int):
 
 
 @cli.command()
-@click.option('--directory', required=True, help='Path to the directory containing tagged images.')
-@click.option('--query', required=True, help='Search query (comma- or space-delimited words).')
-@click.option('--use_time_location_info', required=False, default=True, help='When false, extracted time & location data is ignored in the search.')
+@click.option("--directory", required=True, help="Path to the directory containing tagged images.")
+@click.option(
+    "--query",
+    required=True,
+    help="Textual search query (comma- or space-delimited words).",
+)
+@click.option(
+    "--use_time_location_info",
+    required=False,
+    default=True,
+    help="When false, extracted time & location data is ignored in the search.",
+)
 def textual_search(directory: str, query: str, use_time_location_info: bool = True):
     """
     Search for images in a directory based on a text query.  Text queries are treated as a set of individual words,
@@ -93,10 +132,41 @@ def textual_search(directory: str, query: str, use_time_location_info: bool = Tr
 
     # --- show results ------------------------------------
     print(f"Found {len(results)} images:")
-    max_file_len = max(len(filename) for filename, _ in results) if results else 0
-    for filename, score in results:
-        filename = filename.ljust(max_file_len + 3)
-        print(f"  {filename}  {score}")
+    max_file_len = max(len(result.filename) for result in results) if results else 0
+    for result in results:
+        filename = result.filename.ljust(max_file_len + 3)
+        print(f"  {filename}  {result.score:.4f}")
+
+    # --- copy results ------------------------------------
+    core.copy_search_results(Path(directory), query, results)
+
+
+@cli.command()
+@click.option("--directory", required=True, help="Path to the directory containing tagged images.")
+@click.option("--query", required=True, help="Semantic search query.")
+@click.option(
+    "--min-score",
+    default=0.49,
+    required=False,
+    help="Minimum score to be included as a result.",
+)
+def semantic_search(directory: str, query: str, min_score: float):
+    """
+    Search for images in a directory based on a text query using semantic search.  Search will be based
+    on similarity scores between embeddings (query vs image).
+    :param directory: Path to the directory containing images.
+    :param query: Text query to search for (comma or space-separated).
+    :param min_score: Minimum score to be included as a result (default: 0.5).
+    """
+    print(f"Searching semantically for '{query}' in directory: {directory}, including results with score>={min_score}.")
+    results = core.semantic_search(Path(directory), query, min_score)
+
+    # --- show results ------------------------------------
+    print(f"Found {len(results)} images:")
+    max_file_len = max(len(result.filename) for result in results) if results else 0
+    for result in results:
+        filename = result.filename.ljust(max_file_len + 3)
+        print(f"  {filename}  {result.score:.4f}   [{result.score_src}]")
 
     # --- copy results ------------------------------------
     core.copy_search_results(Path(directory), query, results)
@@ -105,5 +175,5 @@ def textual_search(directory: str, query: str, use_time_location_info: bool = Tr
 # -------------------------------------------------------------------------
 #  Python entrypoint
 # -------------------------------------------------------------------------
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

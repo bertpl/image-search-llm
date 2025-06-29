@@ -1,14 +1,22 @@
+import sys
+from pathlib import Path
 from typing import Literal
 
-from ._tag_image import tag_image
-from pathlib import Path
-from core.config import SUPPORTED_IMAGE_EXTENSIONS
 from tqdm import tqdm
-import sys
+
+from core.config import SUPPORTED_IMAGE_EXTENSIONS
 from core.models import ensure_model_exists
 
-def tag_all_images(images_path: Path, model: str, geolookup: Literal["off", "offline", "online"], overwrite: bool):
+from ._tag_image import tag_image
 
+
+def tag_all_images(
+    images_path: Path,
+    model: str,
+    geolookup: Literal["off", "offline", "online"],
+    embedding_size: int,
+    overwrite: bool,
+):
     # ensure model exists
     ensure_model_exists(model)
 
@@ -19,8 +27,13 @@ def tag_all_images(images_path: Path, model: str, geolookup: Literal["off", "off
     images = sorted(images)
 
     # tag one by one
-    for image in tqdm(images, desc=f"Tagging {len(images):_} image(s)... ", file=sys.stdout, total=len(images)):
+    for image in tqdm(
+        images,
+        desc=f"Tagging {len(images):_} image(s)... ",
+        file=sys.stdout,
+        total=len(images),
+    ):
         image_path = Path(image)
-        metadata_path = image_path.parent / "metadata" /  f"{image_path.parts[-1]}.json"
+        metadata_path = image_path.parent / "metadata" / f"{image_path.parts[-1]}.json"
         if overwrite or not metadata_path.exists():
-            tag_image(image_path, metadata_path, model, geolookup)
+            tag_image(image_path, metadata_path, model, geolookup, embedding_size)

@@ -1,10 +1,10 @@
 from collections import defaultdict
 from pathlib import Path
+
 from ._read_all_metadata import read_all_metadata
 
 
 def show_tags(image_directory: Path, n: int = 10):
-
     # read all metadata
     all_metadata = read_all_metadata(image_directory)
 

@@ -45,4 +45,3 @@ def read_metadata(metadata_path: Path) -> ImageMetadata | None:
         except Exception as e:
             print(f"Error reading metadata for {metadata_path}: {e}")
             return None
-

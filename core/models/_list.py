@@ -1,5 +1,6 @@
 import ollama
 
+
 def get_model_names() -> list[str]:
     """
     :return: list of model names that match the required capabilities
@@ -14,4 +15,6 @@ def ensure_model_exists(model_name: str) -> None:
     :raises ValueError: If the model does not exist.
     """
     if model_name not in get_model_names():
-        raise ValueError(f"Model '{model_name}' not installed.  Install or specify another model using the --model option.")
+        raise ValueError(
+            f"Model '{model_name}' not installed.  Install or specify another model using the --model option."
+        )

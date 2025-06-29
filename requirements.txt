@@ -1,18 +1,27 @@
-# --- LLAMA ---------------------------
-ollama >= 0.5.1             # Python bindings for Ollama, through which we can run Llama models
-
-# --- Stable Diffusion ----------------
-# TODO
+# --- LLM -------------------------------
+ollama >= 0.5.1                     # Python bindings for Ollama, through which we can run Llama models
+transformers[torch, torch-vision] >= 4.53.0       # Hugging Face Transformers library for LLMs
+peft                                # required for JinaAI embedding models
 
 # --- Image Processing ----------------
-pillow >= 11.2.0            # Image processing
-exif >= 1.6.1               # Read and write EXIF metadata
-reverse-geocode >= 1.6.6    # convert GPS coordinates to country, province, city  (off-line)
-geopy >= 2.4.1              # convert GPS coordinates to country, province, city (on-line)
+pillow >= 11.2.0                    # Image processing
+exif >= 1.6.1                       # Read and write EXIF metadata
+reverse-geocode >= 1.6.6            # convert GPS coordinates to country, province, city  (off-line)
+geopy >= 2.4.1                      # convert GPS coordinates to country, province, city (on-line)
+
+# --- MATH ----------------------------
+numpy >= 2.3.0                      # Numerical computing
 
 # --- MISC ----------------------------
-click >= 8.2.0              # CLI interface
-pydantic >= 2.11.0          # Data classes with convenient (de)serialization
-tqdm >= 4.67.0              # progress bars
+click >= 8.2.0                      # CLI interface
+pydantic >= 2.11.0                  # Data classes with convenient (de)serialization
+tqdm >= 4.67.0                      # progress bars
+charset_normalizer                  # needed by requests
+
+# --- PLOTTING ------------------------
+matplotlib >= 3.10.0                # Plotting library
+
 # --- DEVELOPMENT ---------------------
 ruff >= 0.12.1                      # Formatting
+ipywidgets
+jupyterlab
